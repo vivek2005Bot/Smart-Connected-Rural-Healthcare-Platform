@@ -1,14 +1,10 @@
 import React from 'react';
-import Header from '../components/Header';
 import { motion } from 'framer-motion';
+import { Brain, Heart, Users, Calendar, Phone, MessageCircle, BookOpen, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function MentalHealth() {
+const MentalHealth = () => {
   const navigate = useNavigate();
-
-  const handleFooterClick = (path: string) => {
-    navigate(path);
-  };
 
   const mentalHealthResources = [
     {
@@ -22,7 +18,8 @@ export default function MentalHealth() {
         'Time management strategies',
         'Healthy lifestyle habits'
       ],
-      icon: '🧘'
+      icon: <Brain className="w-6 h-6" />,
+      color: "from-blue-500 to-purple-500"
     },
     {
       id: 2,
@@ -35,7 +32,8 @@ export default function MentalHealth() {
         'Healthy sleep habits',
         'Social support'
       ],
-      icon: '😌'
+      icon: <Heart className="w-6 h-6" />,
+      color: "from-green-500 to-teal-500"
     },
     {
       id: 3,
@@ -48,7 +46,8 @@ export default function MentalHealth() {
         'Medication management',
         'Self-care practices'
       ],
-      icon: '🌞'
+      icon: <Users className="w-6 h-6" />,
+      color: "from-purple-500 to-pink-500"
     },
     {
       id: 4,
@@ -61,147 +60,150 @@ export default function MentalHealth() {
         'Gratitude practice',
         'Mindful walking'
       ],
-      icon: '🧠'
+      icon: <BookOpen className="w-6 h-6" />,
+      color: "from-orange-500 to-red-500"
+    }
+  ];
+
+  const supportServices = [
+    {
+      title: "Online Counseling",
+      description: "Connect with licensed therapists through secure video sessions",
+      icon: <MessageCircle className="w-6 h-6" />,
+      color: "from-blue-500 to-purple-500",
+      action: () => navigate('/chat')
     },
     {
-      id: 5,
-      title: 'Sleep Hygiene',
-      description: 'Learn how to improve your sleep quality and establish healthy sleep patterns',
-      techniques: [
-        'Consistent sleep schedule',
-        'Relaxing bedtime routine',
-        'Screen time management',
-        'Comfortable sleep environment',
-        'Stress reduction before bed'
-      ],
-      icon: '😴'
+      title: "Support Groups",
+      description: "Join virtual support groups led by mental health professionals",
+      icon: <Users className="w-6 h-6" />,
+      color: "from-green-500 to-teal-500",
+      action: () => navigate('/appointments')
     },
     {
-      id: 6,
-      title: 'Professional Support',
-      description: 'Access professional mental health resources and support services',
-      techniques: [
-        'Therapy sessions',
-        'Support groups',
-        'Crisis hotlines',
-        'Online counseling',
-        'Mental health apps'
-      ],
-      icon: '👥'
+      title: "Self-Help Resources",
+      description: "Access guided meditation, stress management, and wellness tips",
+      icon: <BookOpen className="w-6 h-6" />,
+      color: "from-orange-500 to-red-500",
+      action: () => {}
+    },
+    {
+      title: "Crisis Support",
+      description: "24/7 emergency mental health support and crisis intervention",
+      icon: <Phone className="w-6 h-6" />,
+      color: "from-red-500 to-pink-500",
+      action: () => navigate('/emergency')
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
-      <Header />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-5xl font-bold text-white mb-4">Mental Health Resources</h1>
-          <p className="text-xl text-indigo-200">Find support and resources for your mental well-being</p>
-        </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Mental Health Support
+            </h1>
+            <p className="text-xl text-purple-200 max-w-3xl mx-auto">
+              Your mental well-being matters. Access professional support, resources, and tools to help you on your journey to better mental health.
+            </p>
+          </motion.div>
+        </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mentalHealthResources.map((resource) => (
+      {/* Mental Health Resources Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-bold text-white mb-8 text-center">Mental Health Resources</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {mentalHealthResources.map((resource, index) => (
             <motion.div
               key={resource.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="relative group"
             >
-              <div className="flex items-center mb-4">
-                <span className="text-4xl mr-4">{resource.icon}</span>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{resource.title}</h3>
-                  <p className="text-indigo-200">{resource.description}</p>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gray-900/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 transition-all duration-300">
+                <div className={`bg-gradient-to-r ${resource.color} p-3 rounded-xl w-12 h-12 flex items-center justify-center mb-4`}>
+                  {resource.icon}
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="text-lg font-semibold text-white">Techniques:</h4>
-                <ul className="space-y-2">
-                  {resource.techniques.map((technique, index) => (
-                    <motion.li
-                      key={index}
+                <h3 className="text-xl font-semibold text-white mb-2">{resource.title}</h3>
+                <p className="text-purple-200 mb-4">{resource.description}</p>
+                <div className="space-y-2">
+                  {resource.techniques.map((technique, idx) => (
+                    <motion.div
+                      key={idx}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="text-indigo-200 flex items-start"
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                      className="flex items-center space-x-2 text-purple-200"
                     >
-                      <span className="text-white mr-2">•</span>
-                      {technique}
-                    </motion.li>
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                      <span>{technique}</span>
+                    </motion.div>
                   ))}
-                </ul>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
-      </main>
+      </div>
 
-      <motion.footer
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-lg border-t border-white/20 py-4"
-      >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-4 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/appointments')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
+      {/* Support Services Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-bold text-white mb-8 text-center">Professional Support Services</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {supportServices.map((service, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="relative group"
+              onClick={service.action}
             >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm">Appointments</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/chat')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span className="text-sm">Chat</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/emergency')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span className="text-sm">Emergency</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/profile')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-sm">Profile</span>
-            </motion.button>
-          </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gray-900/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 transition-all duration-300 cursor-pointer">
+                <div className={`bg-gradient-to-r ${service.color} p-3 rounded-xl w-12 h-12 flex items-center justify-center mb-4`}>
+                  {service.icon}
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">{service.title}</h3>
+                <p className="text-purple-200">{service.description}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      </motion.footer>
+      </div>
+
+      {/* CTA Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center"
+        >
+          <h2 className="text-3xl font-bold text-white mb-6">Need Immediate Support?</h2>
+          <p className="text-xl text-purple-200 mb-8">
+            Our mental health professionals are available 24/7 to help you.
+          </p>
+          <button
+            onClick={() => navigate('/emergency')}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
+          >
+            Get Emergency Support
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
-}
+};
+
+export default MentalHealth;

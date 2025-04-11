@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.appointment import Appointment
 from config.database import mongo
-from datetime import datetime
+from datetime import datetime, timedelta
 
 appointments_bp = Blueprint('appointments', __name__)
 
@@ -63,4 +63,92 @@ def update_appointment(appointment_id):
         }}
     )
     
-    return jsonify({'message': 'Appointment updated successfully'}), 200 
+    return jsonify({'message': 'Appointment updated successfully'}), 200
+
+@appointments_bp.route('/doctor', methods=['GET'])
+@jwt_required()
+def get_doctor_appointments():
+    current_user = get_jwt_identity()
+    
+    # Get query parameters for filtering
+    status = request.args.get('status', 'all')
+    date = request.args.get('date')
+    
+    # Build query
+    query = {'doctor_id': current_user['email']}
+    if status != 'all':
+        query['status'] = status
+    if date:
+        query['appointment_time'] = {
+            '$gte': datetime.strptime(date, '%Y-%m-%d'),
+            '$lt': datetime.strptime(date, '%Y-%m-%d') + timedelta(days=1)
+        }
+    
+    # Get appointments
+    appointments = list(mongo.db.appointments.find(query).sort('appointment_time', 1))
+    
+    return jsonify([Appointment.from_dict(appt).to_dict() for appt in appointments]), 200
+
+@appointments_bp.route('/<appointment_id>/status', methods=['PUT'])
+@jwt_required()
+def update_appointment_status(appointment_id):
+    current_user = get_jwt_identity()
+    data = request.get_json()
+    
+    # Validate status
+    valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
+    if data['status'] not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+    
+    # Update appointment
+    result = mongo.db.appointments.update_one(
+        {'_id': appointment_id, 'doctor_id': current_user['email']},
+        {
+            '$set': {
+                'status': data['status'],
+                'updated_at': datetime.utcnow()
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        return jsonify({'error': 'Appointment not found or unauthorized'}), 404
+    
+    return jsonify({'message': 'Appointment status updated successfully'}), 200
+
+@appointments_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_appointment_stats():
+    current_user = get_jwt_identity()
+    
+    # Get total appointments
+    total = mongo.db.appointments.count_documents({'doctor_id': current_user['email']})
+    
+    # Get pending appointments
+    pending = mongo.db.appointments.count_documents({
+        'doctor_id': current_user['email'],
+        'status': 'pending'
+    })
+    
+    # Get confirmed appointments
+    confirmed = mongo.db.appointments.count_documents({
+        'doctor_id': current_user['email'],
+        'status': 'confirmed'
+    })
+    
+    # Get today's appointments
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_appointments = mongo.db.appointments.count_documents({
+        'doctor_id': current_user['email'],
+        'appointment_time': {
+            '$gte': today,
+            '$lt': today + timedelta(days=1)
+        }
+    })
+    
+    return jsonify({
+        'total': total,
+        'pending': pending,
+        'confirmed': confirmed,
+        'today': today_appointments
+    }), 200 

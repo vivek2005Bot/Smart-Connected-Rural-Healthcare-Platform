@@ -45,8 +45,7 @@ export default function Login() {
       setIsLoading(true);
       try {
         await login(email, password);
-        const from = (location.state as any)?.from?.pathname || '/';
-        navigate(from, { replace: true });
+        navigate('/home', { replace: true });
       } catch (error: any) {
         setErrors({
           email: error.response?.data?.message || 'Invalid credentials',

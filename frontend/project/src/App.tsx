@@ -11,10 +11,14 @@ import HelpSupport from './pages/HelpSupport';
 import Emergency from './pages/Emergency';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import DoctorLogin from './pages/DoctorLogin';
+import DoctorDashboard from './pages/DoctorDashboard';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Admin from './pages/Admin';
+import DoctorProtectedRoute from './components/DoctorProtectedRoute';
 import HomePage from './pages/Home';
+import LandingPage from './pages/LandingPage';
+import ChatBot from './components/ChatBot';
 
 function App() {
   return (
@@ -22,19 +26,23 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/doctor-login" element={<DoctorLogin />} />
+          <Route path="/home" element={<HomePage />} />
 
-          {/* Protected routes */}
+          {/* Doctor routes */}
           <Route
-            path="/admin"
+            path="/doctor-dashboard"
             element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
+              <DoctorProtectedRoute>
+                <DoctorDashboard />
+              </DoctorProtectedRoute>
             }
           />
+
+          {/* Patient routes */}
           <Route
             path="/appointments"
             element={
@@ -77,6 +85,7 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <ChatBot />
       </AuthProvider>
     </Router>
   );

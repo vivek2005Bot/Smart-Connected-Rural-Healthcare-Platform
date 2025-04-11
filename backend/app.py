@@ -38,4 +38,6 @@ app.register_blueprint(chat_bp, url_prefix='/api/chat')
 app.register_blueprint(emergency_bp, url_prefix='/api/emergency')
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    from werkzeug.serving import WSGIRequestHandler
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True) 

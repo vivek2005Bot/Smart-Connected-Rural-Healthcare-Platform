@@ -1,17 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
   id: number;
+  doctor?: string;
+  specialty?: string;
+  date: string;
+  time?: string;
+  status: 'pending' | 'scheduled' | 'completed' | 'cancelled';
+  patientName?: string;
+  patientId?: string;
+  name?: string;
+  age?: string;
+  email?: string;
+  contact?: string;
+  address?: string;
+}
+
+interface BookingFormData {
+  name: string;
+  age: string;
+  email: string;
+  contact: string;
+  address: string;
   doctor: string;
   specialty: string;
   date: string;
   time: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  patientName?: string;
-  patientId?: string;
 }
 
 type UserRole = 'doctor' | 'patient';
@@ -20,48 +37,127 @@ export default function Appointments() {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<UserRole>('patient');
   const [showBookingForm, setShowBookingForm] = useState(false);
-  const [newAppointment, setNewAppointment] = useState({
+  const [bookingFormData, setBookingFormData] = useState<BookingFormData>({
+    name: '',
+    age: '',
+    email: '',
+    contact: '',
+    address: '',
     doctor: '',
     specialty: '',
     date: '',
-    time: '',
+    time: ''
   });
 
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: 1,
-      doctor: 'Dr. Sarah Johnson',
-      specialty: 'Cardiology',
-      date: '2024-04-15',
-      time: '10:00 AM',
-      status: 'scheduled',
-      patientName: 'John Doe',
-      patientId: 'P001'
-    },
-    {
-      id: 2,
-      doctor: 'Dr. Michael Chen',
-      specialty: 'Pediatrics',
-      date: '2024-04-16',
-      time: '02:30 PM',
-      status: 'scheduled',
-      patientName: 'Jane Smith',
-      patientId: 'P002'
-    }
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [availableDoctors] = useState([
+    { name: 'Dr. Sarah Johnson', specialty: 'Cardiology' },
+    { name: 'Dr. Michael Chen', specialty: 'Pediatrics' },
+    { name: 'Dr. Emily Brown', specialty: 'General Medicine' },
+    { name: 'Dr. David Wilson', specialty: 'Orthopedics' }
   ]);
 
-  const handleBookAppointment = () => {
-    if (newAppointment.doctor && newAppointment.specialty && newAppointment.date && newAppointment.time) {
-      const appointment: Appointment = {
-        id: appointments.length + 1,
-        ...newAppointment,
+  // Load appointments from localStorage
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+
+  const loadAppointments = () => {
+    // Get chatbot appointments
+    const chatbotAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+    
+    // Get default appointments
+    const defaultAppointments: Appointment[] = [
+      {
+        id: 1,
+        doctor: 'Dr. Sarah Johnson',
+        specialty: 'Cardiology',
+        date: '2024-04-15',
+        time: '10:00 AM',
         status: 'scheduled',
-        patientName: 'Current User',
-        patientId: 'P003'
+        patientName: 'John Doe',
+        patientId: 'P001'
+      },
+      {
+        id: 2,
+        doctor: 'Dr. Michael Chen',
+        specialty: 'Pediatrics',
+        date: '2024-04-16',
+        time: '02:30 PM',
+        status: 'scheduled',
+        patientName: 'Jane Smith',
+        patientId: 'P002'
+      }
+    ];
+
+    // Transform chatbot appointments to match the Appointment interface
+    const transformedChatbotAppointments = chatbotAppointments.map((apt: any) => ({
+      id: apt.id,
+      doctor: apt.doctor || 'To be assigned',
+      specialty: apt.specialty || 'General',
+      date: new Date(apt.date).toLocaleDateString(),
+      time: new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: apt.status,
+      patientName: apt.name,
+      patientId: `P${apt.id.toString().slice(-3)}`,
+      email: apt.email,
+      contact: apt.contact,
+      address: apt.address,
+      age: apt.age
+    }));
+
+    // Combine both types of appointments
+    setAppointments([...defaultAppointments, ...transformedChatbotAppointments]);
+  };
+
+  const handleBookAppointment = () => {
+    const {
+      name, age, email, contact, address, doctor, specialty, date, time
+    } = bookingFormData;
+
+    if (name && age && email && contact && address && date && time) {
+      const newAppointment: Appointment = {
+        id: Date.now(),
+        doctor: doctor || 'To be assigned',
+        specialty: specialty || 'General',
+        date,
+        time,
+        status: 'pending',
+        patientName: name,
+        patientId: `P${Date.now().toString().slice(-3)}`,
+        name,
+        age,
+        email,
+        contact,
+        address
       };
-      setAppointments([...appointments, appointment]);
+
+      // Get existing appointments
+      const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      
+      // Add new appointment
+      const updatedAppointments = [...existingAppointments, newAppointment];
+      
+      // Save to localStorage
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+
+      // Update state
+      setAppointments(prev => [...prev, newAppointment]);
       setShowBookingForm(false);
-      setNewAppointment({ doctor: '', specialty: '', date: '', time: '' });
+      setBookingFormData({
+        name: '',
+        age: '',
+        email: '',
+        contact: '',
+        address: '',
+        doctor: '',
+        specialty: '',
+        date: '',
+        time: ''
+      });
+
+      // Reload appointments to ensure consistency
+      loadAppointments();
     }
   };
 
@@ -136,28 +232,66 @@ export default function Appointments() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
-                placeholder="Doctor's Name"
-                value={newAppointment.doctor}
-                onChange={(e) => setNewAppointment({ ...newAppointment, doctor: e.target.value })}
+                placeholder="Full Name"
+                value={bookingFormData.name}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, name: e.target.value })}
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="number"
+                placeholder="Age"
+                value={bookingFormData.age}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, age: e.target.value })}
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={bookingFormData.email}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="tel"
+                placeholder="Contact Number"
+                value={bookingFormData.contact}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, contact: e.target.value })}
                 className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <input
                 type="text"
-                placeholder="Specialty"
-                value={newAppointment.specialty}
-                onChange={(e) => setNewAppointment({ ...newAppointment, specialty: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Address"
+                value={bookingFormData.address}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, address: e.target.value })}
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 md:col-span-2"
               />
+              <select
+                value={bookingFormData.doctor}
+                onChange={(e) => {
+                  const doctor = availableDoctors.find(d => d.name === e.target.value);
+                  setBookingFormData({
+                    ...bookingFormData,
+                    doctor: e.target.value,
+                    specialty: doctor?.specialty || ''
+                  });
+                }}
+                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Select Doctor</option>
+                {availableDoctors.map((doctor, index) => (
+                  <option key={index} value={doctor.name}>{doctor.name} - {doctor.specialty}</option>
+                ))}
+              </select>
               <input
                 type="date"
-                value={newAppointment.date}
-                onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
+                value={bookingFormData.date}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, date: e.target.value })}
                 className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <input
                 type="time"
-                value={newAppointment.time}
-                onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
+                value={bookingFormData.time}
+                onChange={(e) => setBookingFormData({ ...bookingFormData, time: e.target.value })}
                 className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
@@ -191,16 +325,25 @@ export default function Appointments() {
                 <span className={`px-3 py-1 rounded-full text-sm ${
                   appointment.status === 'scheduled' ? 'bg-green-500/20 text-green-300' :
                   appointment.status === 'completed' ? 'bg-blue-500/20 text-blue-300' :
+                  appointment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
                   'bg-red-500/20 text-red-300'
                 }`}>
                   {appointment.status}
                 </span>
               </div>
-              <p className="text-indigo-200 mb-2">{appointment.specialty}</p>
-              {userRole === 'doctor' && (
+              <p className="text-indigo-200 mb-2">{appointment.specialty || 'General Consultation'}</p>
+              {(userRole === 'doctor' || appointment.status === 'pending') && (
                 <div className="mb-4">
                   <p className="text-indigo-200">Patient: {appointment.patientName}</p>
                   <p className="text-indigo-200 text-sm">ID: {appointment.patientId}</p>
+                  {appointment.status === 'pending' && (
+                    <>
+                      <p className="text-indigo-200 text-sm">Age: {appointment.age}</p>
+                      <p className="text-indigo-200 text-sm">Email: {appointment.email}</p>
+                      <p className="text-indigo-200 text-sm">Contact: {appointment.contact}</p>
+                      <p className="text-indigo-200 text-sm">Address: {appointment.address}</p>
+                    </>
+                  )}
                 </div>
               )}
               <div className="flex items-center space-x-4 text-indigo-200">
@@ -210,15 +353,17 @@ export default function Appointments() {
                   </svg>
                   {appointment.date}
                 </div>
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {appointment.time}
-                </div>
+                {appointment.time && (
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {appointment.time}
+                  </div>
+                )}
               </div>
               <div className="mt-6 flex space-x-4">
-                {userRole === 'patient' && (
+                {userRole === 'patient' && appointment.status !== 'pending' && (
                   <>
                     <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
                       Reschedule
@@ -229,8 +374,19 @@ export default function Appointments() {
                   </>
                 )}
                 {userRole === 'doctor' && (
-                  <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    View Details
+                  <button 
+                    onClick={() => {
+                      if (appointment.status === 'pending') {
+                        const updatedAppointments = appointments.map(apt => 
+                          apt.id === appointment.id ? { ...apt, status: 'scheduled' as const } : apt
+                        );
+                        setAppointments(updatedAppointments);
+                        localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+                      }
+                    }}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    {appointment.status === 'pending' ? 'Accept Appointment' : 'View Details'}
                   </button>
                 )}
               </div>

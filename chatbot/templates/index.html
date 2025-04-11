@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Rural Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Smart Rural Healthcare</h1>
+            <p>Your trusted healthcare companion</p>
+        </div>
+        <div id="chat"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your response here..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div id="options" class="options">
+            <button class="option-btn" onclick="selectOption('appointment')">Book Appointment</button>
+            <button class="option-btn" onclick="selectOption('disease')">Find Disease Mentally</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+</body>
+</html>

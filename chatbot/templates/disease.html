@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Disease Finder - Smart Rural Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Disease Finder</h1>
+            <p>Select your symptoms to find possible conditions</p>
+        </div>
+        
+        <div class="symptom-section">
+            <h3>Common Symptoms</h3>
+            <div class="symptom-checkbox">
+                <input type="checkbox" id="fever" name="symptoms">
+                <label for="fever">Fever</label>
+            </div>
+            <div class="symptom-checkbox">
+                <input type="checkbox" id="cough" name="symptoms">
+                <label for="cough">Cough</label>
+            </div>
+            <div class="symptom-checkbox">
+                <input type="checkbox" id="headache" name="symptoms">
+                <label for="headache">Headache</label>
+            </div>
+            <div class="symptom-checkbox">
+                <input type="checkbox" id="fatigue" name="symptoms">
+                <label for="fatigue">Fatigue</label>
+            </div>
+            <div class="symptom-checkbox">
+                <input type="checkbox" id="bodyPain" name="symptoms">
+                <label for="bodyPain">Body Pain</label>
+            </div>
+        </div>
+
+        <button onclick="findDisease()">Find Possible Conditions</button>
+        <div id="result"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/disease.js') }}"></script>
+</body>
+</html> 

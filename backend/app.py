@@ -1,22 +1,28 @@
 from flask import Flask
-from flask_pymongo import PyMongo
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 import os
 from dotenv import load_dotenv
+from config.database import mongo
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# MongoDB Configuration
-app.config["MONGO_URI"] = os.getenv("MONGO_URI", "mongodb://localhost:27017/healthcare_db")
-mongo = PyMongo(app)
+# Configure CORS
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000", "http://localhost:5173"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # JWT Configuration
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "your-secret-key")
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-secret-key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 jwt = JWTManager(app)
 
 # Import routes

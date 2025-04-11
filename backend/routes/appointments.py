@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.models.appointment import Appointment
-from backend.app import mongo
+from models.appointment import Appointment
+from config.database import mongo
 from datetime import datetime
 
 appointments_bp = Blueprint('appointments', __name__)

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, Mail, Lock, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '', name: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = { email: '', password: '', name: '' };
@@ -40,11 +43,23 @@ export default function Register() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Registration logic will be implemented here
-      console.log('Registration attempt:', { email, password, name });
+      setIsLoading(true);
+      try {
+        await register(name, email, password, 'patient');
+        navigate('/');
+      } catch (error: any) {
+        console.error('Registration error:', error.response?.data);
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Registration failed';
+        setErrors({
+          ...errors,
+          email: errorMessage
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -150,11 +165,13 @@ export default function Register() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl
+                  disabled={isLoading}
+                  className={`w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl
                     hover:from-blue-700 hover:to-blue-900 transform hover:scale-105 hover:-rotate-1
-                    transition-all duration-200 shadow-lg hover:shadow-blue-500/20 text-lg font-semibold"
+                    transition-all duration-200 shadow-lg hover:shadow-blue-500/20 text-lg font-semibold
+                    ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Create Account
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
               </form>
 

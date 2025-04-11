@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.emergency import EmergencyRequest
-from app import mongo
+from config.database import mongo
 from datetime import datetime
 
 emergency_bp = Blueprint('emergency', __name__)

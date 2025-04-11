@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = { email: '', password: '' };
@@ -33,11 +39,22 @@ export default function Login() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle login logic here
-      console.log('Login attempt with:', { email });
+      setIsLoading(true);
+      try {
+        await login(email, password);
+        const from = (location.state as any)?.from?.pathname || '/';
+        navigate(from, { replace: true });
+      } catch (error: any) {
+        setErrors({
+          email: error.response?.data?.message || 'Invalid credentials',
+          password: ''
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -143,11 +160,13 @@ export default function Login() {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl
+                  disabled={isLoading}
+                  className={`w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl
                     hover:from-blue-700 hover:to-blue-900 transform hover:scale-105 hover:-rotate-1
-                    transition-all duration-200 shadow-lg hover:shadow-blue-500/20 text-lg font-semibold"
+                    transition-all duration-200 shadow-lg hover:shadow-blue-500/20 text-lg font-semibold
+                    ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Sign In
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
 

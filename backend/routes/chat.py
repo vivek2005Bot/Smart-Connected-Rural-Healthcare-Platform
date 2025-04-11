@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from backend.models.chat import ChatMessage
-from backend.app import mongo
+from models.chat import ChatMessage
+from config.database import mongo
 
 chat_bp = Blueprint('chat', __name__)
 

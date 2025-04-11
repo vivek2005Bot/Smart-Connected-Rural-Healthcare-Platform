@@ -1,22 +1,21 @@
-import { useState, useEffect } from 'react';
-import Header from '../components/Header';
+import React, { useState, useEffect } from 'react';
+import PublicHeader from '../components/PublicHeader';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
-  id: number;
-  doctor?: string;
-  specialty?: string;
+  id: string | number;
+  name?: string;
   date: string;
   time?: string;
-  status: 'pending' | 'scheduled' | 'completed' | 'cancelled';
-  patientName?: string;
-  patientId?: string;
-  name?: string;
-  age?: string;
-  email?: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  symptoms?: string;
   contact?: string;
+  email?: string;
   address?: string;
+  age?: string;
+  doctor?: string;
+  specialty?: string;
 }
 
 interface BookingFormData {
@@ -31,11 +30,8 @@ interface BookingFormData {
   time: string;
 }
 
-type UserRole = 'doctor' | 'patient';
-
 export default function Appointments() {
   const navigate = useNavigate();
-  const [userRole, setUserRole] = useState<UserRole>('patient');
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [bookingFormData, setBookingFormData] = useState<BookingFormData>({
     name: '',
@@ -50,6 +46,7 @@ export default function Appointments() {
   });
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [availableDoctors] = useState([
     { name: 'Dr. Sarah Johnson', specialty: 'Cardiology' },
     { name: 'Dr. Michael Chen', specialty: 'Pediatrics' },
@@ -57,57 +54,17 @@ export default function Appointments() {
     { name: 'Dr. David Wilson', specialty: 'Orthopedics' }
   ]);
 
-  // Load appointments from localStorage
   useEffect(() => {
     loadAppointments();
   }, []);
 
   const loadAppointments = () => {
-    // Get chatbot appointments
-    const chatbotAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-    
-    // Get default appointments
-    const defaultAppointments: Appointment[] = [
-      {
-        id: 1,
-        doctor: 'Dr. Sarah Johnson',
-        specialty: 'Cardiology',
-        date: '2024-04-15',
-        time: '10:00 AM',
-        status: 'scheduled',
-        patientName: 'John Doe',
-        patientId: 'P001'
-      },
-      {
-        id: 2,
-        doctor: 'Dr. Michael Chen',
-        specialty: 'Pediatrics',
-        date: '2024-04-16',
-        time: '02:30 PM',
-        status: 'scheduled',
-        patientName: 'Jane Smith',
-        patientId: 'P002'
-      }
-    ];
-
-    // Transform chatbot appointments to match the Appointment interface
-    const transformedChatbotAppointments = chatbotAppointments.map((apt: any) => ({
-      id: apt.id,
-      doctor: apt.doctor || 'To be assigned',
-      specialty: apt.specialty || 'General',
-      date: new Date(apt.date).toLocaleDateString(),
-      time: new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: apt.status,
-      patientName: apt.name,
-      patientId: `P${apt.id.toString().slice(-3)}`,
-      email: apt.email,
-      contact: apt.contact,
-      address: apt.address,
-      age: apt.age
-    }));
-
-    // Combine both types of appointments
-    setAppointments([...defaultAppointments, ...transformedChatbotAppointments]);
+    try {
+      const storedAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      setAppointments(storedAppointments);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+    }
   };
 
   const handleBookAppointment = () => {
@@ -123,8 +80,6 @@ export default function Appointments() {
         date,
         time,
         status: 'pending',
-        patientName: name,
-        patientId: `P${Date.now().toString().slice(-3)}`,
         name,
         age,
         email,
@@ -132,16 +87,10 @@ export default function Appointments() {
         address
       };
 
-      // Get existing appointments
       const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      
-      // Add new appointment
       const updatedAppointments = [...existingAppointments, newAppointment];
-      
-      // Save to localStorage
       localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
-      // Update state
       setAppointments(prev => [...prev, newAppointment]);
       setShowBookingForm(false);
       setBookingFormData({
@@ -156,14 +105,56 @@ export default function Appointments() {
         time: ''
       });
 
-      // Reload appointments to ensure consistency
       loadAppointments();
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setBookingFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleStatusChange = (appointmentId: string | number, newStatus: 'confirmed' | 'cancelled') => {
+    try {
+      // Get current appointments from localStorage
+      const storedAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      
+      // Update the appointment status
+      const updatedAppointments = storedAppointments.map((apt: Appointment) => {
+        if (apt.id.toString() === appointmentId.toString()) {
+          return {
+            ...apt,
+            status: newStatus
+          };
+        }
+        return apt;
+      });
+
+      // Save back to localStorage
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+
+      // Update state
+      setAppointments(updatedAppointments);
+
+      // Show success message
+      alert(`Appointment ${newStatus} successfully`);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status');
+    }
+  };
+
+  const filteredAppointments = appointments.filter(appointment => {
+    if (filter === 'all') return true;
+    return appointment.status === filter;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-      <Header />
+      <PublicHeader />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -171,228 +162,235 @@ export default function Appointments() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-white mb-4">
-            {userRole === 'doctor' ? 'Appointment Dashboard' : 'Your Appointments'}
-          </h1>
-          <p className="text-indigo-200 mb-6">
-            {userRole === 'doctor' 
-              ? 'View and manage all patient appointments' 
-              : 'Manage and schedule your healthcare appointments'}
-          </p>
+          <h1 className="text-4xl font-bold text-white mb-4">Book an Appointment</h1>
+          <p className="text-indigo-200 mb-6">Schedule your healthcare appointment with our experienced doctors</p>
           
-          <div className="flex justify-center space-x-4 mb-8">
-            <button
-              onClick={() => setUserRole('patient')}
-              className={`px-6 py-2 rounded-lg transition-colors ${
-                userRole === 'patient'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white/10 text-indigo-200 hover:bg-white/20'
-              }`}
-            >
-              Patient View
-            </button>
-            <button
-              onClick={() => setUserRole('doctor')}
-              className={`px-6 py-2 rounded-lg transition-colors ${
-                userRole === 'doctor'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white/10 text-indigo-200 hover:bg-white/20'
-              }`}
-            >
-              Doctor View
-            </button>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowBookingForm(true)}
+            className="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition-colors shadow-lg"
+          >
+            Book New Appointment
+          </motion.button>
         </motion.div>
 
-        {userRole === 'patient' && !showBookingForm && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center mb-8"
-          >
-            <button
-              onClick={() => setShowBookingForm(true)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Book New Appointment
-            </button>
-          </motion.div>
-        )}
-
+        {/* Booking Form Modal */}
         {showBookingForm && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           >
-            <h3 className="text-xl font-semibold text-white mb-4">Book New Appointment</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={bookingFormData.name}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, name: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <input
-                type="number"
-                placeholder="Age"
-                value={bookingFormData.age}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, age: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={bookingFormData.email}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <input
-                type="tel"
-                placeholder="Contact Number"
-                value={bookingFormData.contact}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, contact: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <input
-                type="text"
-                placeholder="Address"
-                value={bookingFormData.address}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, address: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 md:col-span-2"
-              />
-              <select
-                value={bookingFormData.doctor}
-                onChange={(e) => {
-                  const doctor = availableDoctors.find(d => d.name === e.target.value);
-                  setBookingFormData({
-                    ...bookingFormData,
-                    doctor: e.target.value,
-                    specialty: doctor?.specialty || ''
-                  });
-                }}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Select Doctor</option>
-                {availableDoctors.map((doctor, index) => (
-                  <option key={index} value={doctor.name}>{doctor.name} - {doctor.specialty}</option>
-                ))}
-              </select>
-              <input
-                type="date"
-                value={bookingFormData.date}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, date: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <input
-                type="time"
-                value={bookingFormData.time}
-                onChange={(e) => setBookingFormData({ ...bookingFormData, time: e.target.value })}
-                className="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                onClick={() => setShowBookingForm(false)}
-                className="bg-red-600/20 hover:bg-red-600/30 text-red-300 px-4 py-2 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleBookAppointment}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Book Appointment
-              </button>
-            </div>
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Book Appointment</h2>
+              <form className="space-y-4">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={bookingFormData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                />
+                <input
+                  type="text"
+                  name="age"
+                  placeholder="Age"
+                  value={bookingFormData.age}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={bookingFormData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                />
+                <input
+                  type="tel"
+                  name="contact"
+                  placeholder="Contact Number"
+                  value={bookingFormData.contact}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Address"
+                  value={bookingFormData.address}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400"
+                />
+                <select
+                  name="doctor"
+                  value={bookingFormData.doctor}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                >
+                  <option value="">Select Doctor</option>
+                  {availableDoctors.map((doctor, index) => (
+                    <option key={index} value={doctor.name}>
+                      {doctor.name} - {doctor.specialty}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  name="date"
+                  value={bookingFormData.date}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                />
+                <input
+                  type="time"
+                  name="time"
+                  value={bookingFormData.time}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white"
+                />
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={handleBookAppointment}
+                    className="flex-1 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Book Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowBookingForm(false)}
+                    className="flex-1 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {appointments.map((appointment) => (
-            <motion.div
-              key={appointment.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-white">{appointment.doctor}</h3>
-                <span className={`px-3 py-1 rounded-full text-sm ${
-                  appointment.status === 'scheduled' ? 'bg-green-500/20 text-green-300' :
-                  appointment.status === 'completed' ? 'bg-blue-500/20 text-blue-300' :
-                  appointment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-300' :
-                  'bg-red-500/20 text-red-300'
-                }`}>
-                  {appointment.status}
-                </span>
+        {/* Appointments List */}
+        {appointments.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-white mb-6">Your Appointments</h2>
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">Your Appointments</h1>
+                <p className="text-purple-200">Manage your patient appointments and schedules</p>
               </div>
-              <p className="text-indigo-200 mb-2">{appointment.specialty || 'General Consultation'}</p>
-              {(userRole === 'doctor' || appointment.status === 'pending') && (
-                <div className="mb-4">
-                  <p className="text-indigo-200">Patient: {appointment.patientName}</p>
-                  <p className="text-indigo-200 text-sm">ID: {appointment.patientId}</p>
-                  {appointment.status === 'pending' && (
-                    <>
-                      <p className="text-indigo-200 text-sm">Age: {appointment.age}</p>
-                      <p className="text-indigo-200 text-sm">Email: {appointment.email}</p>
-                      <p className="text-indigo-200 text-sm">Contact: {appointment.contact}</p>
-                      <p className="text-indigo-200 text-sm">Address: {appointment.address}</p>
-                    </>
-                  )}
-                </div>
-              )}
-              <div className="flex items-center space-x-4 text-indigo-200">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {appointment.date}
-                </div>
-                {appointment.time && (
-                  <div className="flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {appointment.time}
+              <div className="flex gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+                >
+                  <span className="text-xl">+</span> Add Appointment
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-purple-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-purple-800 transition-colors"
+                >
+                  Sort
+                </motion.button>
+              </div>
+            </div>
+
+            <div className="flex gap-4 mb-8">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-6 py-2 rounded-lg ${
+                  filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                } transition-colors`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('pending')}
+                className={`px-6 py-2 rounded-lg ${
+                  filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                } transition-colors`}
+              >
+                Pending
+              </button>
+              <button
+                onClick={() => setFilter('confirmed')}
+                className={`px-6 py-2 rounded-lg ${
+                  filter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                } transition-colors`}
+              >
+                Confirmed
+              </button>
+              <button
+                onClick={() => setFilter('cancelled')}
+                className={`px-6 py-2 rounded-lg ${
+                  filter === 'cancelled' ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                } transition-colors`}
+              >
+                Cancelled
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {filteredAppointments.map((appointment) => (
+                <motion.div
+                  key={appointment.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-white"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">{appointment.name}</h3>
+                      <div className="space-y-1 text-purple-200">
+                        <p>Date: {new Date(appointment.date).toLocaleDateString()}</p>
+                        {appointment.time && <p>Time: {appointment.time}</p>}
+                        {appointment.symptoms && <p>Symptoms: {appointment.symptoms}</p>}
+                        {appointment.contact && <p>Contact: {appointment.contact}</p>}
+                        {appointment.email && <p>Email: {appointment.email}</p>}
+                        {appointment.age && <p>Age: {appointment.age}</p>}
+                        {appointment.address && <p>Address: {appointment.address}</p>}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end space-y-2">
+                      <span className={`px-3 py-1 rounded-full text-sm ${
+                        appointment.status === 'pending' ? 'bg-yellow-500' :
+                        appointment.status === 'confirmed' ? 'bg-green-500' :
+                        'bg-red-500'
+                      }`}>
+                        {appointment.status}
+                      </span>
+                      {appointment.status === 'pending' && (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleStatusChange(appointment.id, 'confirmed')}
+                            className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-sm"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(appointment.id, 'cancelled')}
+                            className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-lg text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="mt-6 flex space-x-4">
-                {userRole === 'patient' && appointment.status !== 'pending' && (
-                  <>
-                    <button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
-                      Reschedule
-                    </button>
-                    <button className="flex-1 bg-red-600/20 hover:bg-red-600/30 text-red-300 px-4 py-2 rounded-lg transition-colors">
-                      Cancel
-                    </button>
-                  </>
-                )}
-                {userRole === 'doctor' && (
-                  <button 
-                    onClick={() => {
-                      if (appointment.status === 'pending') {
-                        const updatedAppointments = appointments.map(apt => 
-                          apt.id === appointment.id ? { ...apt, status: 'scheduled' as const } : apt
-                        );
-                        setAppointments(updatedAppointments);
-                        localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-                      }
-                    }}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    {appointment.status === 'pending' ? 'Accept Appointment' : 'View Details'}
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

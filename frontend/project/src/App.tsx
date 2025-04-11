@@ -19,6 +19,7 @@ import DoctorProtectedRoute from './components/DoctorProtectedRoute';
 import HomePage from './pages/Home';
 import LandingPage from './pages/LandingPage';
 import ChatBot from './components/ChatBot';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -83,6 +84,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <ChatBot />

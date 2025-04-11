@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,28 +11,58 @@ export default function DoctorLogin() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initialize default doctor if not exists
+  useEffect(() => {
+    // First, clear any existing doctor data to ensure fresh start
+    localStorage.removeItem('doctors');
+    localStorage.removeItem('doctorInfo');
+    
+    // Create default doctor
+    const defaultDoctor = {
+      id: 'DOC123',
+      name: 'Dr. Smith',
+      password: 'doc123',
+      specialization: 'General Physician'
+    };
+    
+    // Store in localStorage
+    localStorage.setItem('doctors', JSON.stringify([defaultDoctor]));
+  }, []); // Run only once on component mount
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Mock authentication - Replace with actual API call
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock validation - Replace with actual API validation
-      if (credentials.doctorId === 'DOC123' && credentials.password === 'password') {
-        // Store doctor info in localStorage or state management
-        localStorage.setItem('doctorInfo', JSON.stringify({
-          id: 'DOC123',
-          name: 'Dr. Smith',
-          specialization: 'General Physician'
-        }));
-        navigate('/doctor-dashboard');
-      } else {
-        setError('Invalid doctor ID or password');
+      // Get doctors from localStorage
+      const doctors = JSON.parse(localStorage.getItem('doctors') || '[]');
+      const doctor = doctors.find((d: any) => d.id === credentials.doctorId);
+      
+      if (!doctor) {
+        setError('Doctor ID not found');
+        setIsLoading(false);
+        return;
       }
+
+      if (credentials.password !== doctor.password) {
+        setError('Invalid password');
+        setIsLoading(false);
+        return;
+      }
+
+      // Store doctor info in localStorage
+      const doctorInfo = {
+        id: doctor.id,
+        name: doctor.name,
+        specialization: doctor.specialization
+      };
+      localStorage.setItem('doctorInfo', JSON.stringify(doctorInfo));
+
+      // Add a small delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      navigate('/doctor-dashboard');
     } catch (err) {
       setError('Login failed. Please try again.');
     } finally {
@@ -61,7 +91,7 @@ export default function DoctorLogin() {
               id="doctorId"
               type="text"
               value={credentials.doctorId}
-              onChange={(e) => setCredentials({ ...credentials, doctorId: e.target.value })}
+              onChange={(e) => setCredentials({ ...credentials, doctorId: e.target.value.trim() })}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your doctor ID"
               required
@@ -76,7 +106,7 @@ export default function DoctorLogin() {
               id="password"
               type="password"
               value={credentials.password}
-              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+              onChange={(e) => setCredentials({ ...credentials, password: e.target.value.trim() })}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your password"
               required

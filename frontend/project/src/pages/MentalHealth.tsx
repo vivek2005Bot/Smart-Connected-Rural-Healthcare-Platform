@@ -2,9 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Heart, Users, Calendar, Phone, MessageCircle, BookOpen, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+interface SupportService {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: string;
+  action: () => void;
+  requiresAuth?: boolean;
+}
 
 const MentalHealth = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const mentalHealthResources = [
     {
@@ -71,30 +82,55 @@ const MentalHealth = () => {
       description: "Connect with licensed therapists through secure video sessions",
       icon: <MessageCircle className="w-6 h-6" />,
       color: "from-blue-500 to-purple-500",
-      action: () => navigate('/chat')
+      action: () => navigate('/chat'),
+      requiresAuth: true
     },
     {
       title: "Support Groups",
       description: "Join virtual support groups led by mental health professionals",
       icon: <Users className="w-6 h-6" />,
       color: "from-green-500 to-teal-500",
-      action: () => navigate('/appointments')
+      action: () => navigate('/appointments'),
+      requiresAuth: true
     },
     {
       title: "Self-Help Resources",
       description: "Access guided meditation, stress management, and wellness tips",
       icon: <BookOpen className="w-6 h-6" />,
       color: "from-orange-500 to-red-500",
-      action: () => {}
+      action: () => {},
+      requiresAuth: false
     },
     {
       title: "Crisis Support",
       description: "24/7 emergency mental health support and crisis intervention",
       icon: <Phone className="w-6 h-6" />,
       color: "from-red-500 to-pink-500",
-      action: () => navigate('/emergency')
+      action: () => navigate('/emergency'),
+      requiresAuth: false
     }
   ];
+
+  const getActionButton = (service: SupportService) => {
+    if (service.requiresAuth && !user) {
+      return (
+        <button
+          onClick={() => navigate('/login')}
+          className="mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300"
+        >
+          Login to Access
+        </button>
+      );
+    }
+    return (
+      <button
+        onClick={service.action}
+        className="mt-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300"
+      >
+        {service.requiresAuth ? "Access Now" : "Access Immediately"}
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-purple-900">
@@ -111,7 +147,10 @@ const MentalHealth = () => {
               Mental Health Support
             </h1>
             <p className="text-xl text-purple-200 max-w-3xl mx-auto">
-              Your mental well-being matters. Access professional support, resources, and tools to help you on your journey to better mental health.
+              {user 
+                ? `Welcome back! Continue your mental health journey with professional support and resources.`
+                : `Your mental well-being matters. Access professional support, resources, and tools to help you on your journey to better mental health.`
+              }
             </p>
           </motion.div>
         </div>
@@ -167,15 +206,15 @@ const MentalHealth = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="relative group"
-              onClick={service.action}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              <div className="relative bg-gray-900/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 transition-all duration-300 cursor-pointer">
+              <div className="relative bg-gray-900/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 hover:border-purple-500/40 transition-all duration-300">
                 <div className={`bg-gradient-to-r ${service.color} p-3 rounded-xl w-12 h-12 flex items-center justify-center mb-4`}>
                   {service.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">{service.title}</h3>
                 <p className="text-purple-200">{service.description}</p>
+                {getActionButton(service)}
               </div>
             </motion.div>
           ))}
@@ -192,13 +231,13 @@ const MentalHealth = () => {
         >
           <h2 className="text-3xl font-bold text-white mb-6">Need Immediate Support?</h2>
           <p className="text-xl text-purple-200 mb-8">
-            Our mental health professionals are available 24/7 to help you.
+            Our crisis support line is available 24/7. Don't hesitate to reach out.
           </p>
           <button
             onClick={() => navigate('/emergency')}
             className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105"
           >
-            Get Emergency Support
+            Get Emergency Support Now
           </button>
         </motion.div>
       </div>

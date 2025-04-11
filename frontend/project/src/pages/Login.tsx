@@ -12,48 +12,28 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const validateForm = () => {
-    const newErrors = { email: '', password: '' };
-    let isValid = true;
-
-    if (!email) {
-      newErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
-      isValid = false;
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required';
-      isValid = false;
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      try {
-        await login(email, password);
-        navigate('/home', { replace: true });
-      } catch (error: any) {
-        setErrors({
-          email: error.response?.data?.message || 'Invalid credentials',
-          password: ''
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    setError(''); // Clear previous errors
+    setIsLoading(true);
+
+    try {
+      await login(email, password);
+      // Clear any stored users to ensure fresh state
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      console.log('Current users:', users); // Debug log
+      navigate('/home');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message || 'Invalid credentials');
+      // Debug: Log the current users in localStorage
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      console.log('Available users:', users);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,8 +55,13 @@ export default function Login() {
                 <LogIn className="w-8 h-8 text-white" />
               </div>
 
+              {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <p className="text-red-400 text-center">{error}</p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Input */}
                 <div>
                   <label htmlFor="email" className="block text-lg font-medium text-white mb-2">
                     Email Address
@@ -90,20 +75,14 @@ export default function Login() {
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className={`w-full pl-10 pr-4 py-3 bg-blue-800/30 border border-blue-600/50 rounded-xl text-white 
+                      className="w-full pl-10 pr-4 py-3 bg-blue-800/30 border border-blue-600/50 rounded-xl text-white 
                         placeholder-blue-300/50 focus:border-blue-400 focus:ring-blue-400 focus:outline-none
-                        transform transition-transform duration-200 hover:scale-[1.01] ${
-                          errors.email ? 'border-red-400' : ''
-                        }`}
+                        transform transition-transform duration-200 hover:scale-[1.01]"
                       placeholder="Enter your email"
                     />
                   </div>
-                  {errors.email && (
-                    <p className="mt-2 text-sm text-red-400">{errors.email}</p>
-                  )}
                 </div>
 
-                {/* Password Input */}
                 <div>
                   <label htmlFor="password" className="block text-lg font-medium text-white mb-2">
                     Password
@@ -117,11 +96,9 @@ export default function Login() {
                       id="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className={`w-full pl-10 pr-12 py-3 bg-blue-800/30 border border-blue-600/50 rounded-xl text-white 
+                      className="w-full pl-10 pr-12 py-3 bg-blue-800/30 border border-blue-600/50 rounded-xl text-white 
                         placeholder-blue-300/50 focus:border-blue-400 focus:ring-blue-400 focus:outline-none
-                        transform transition-transform duration-200 hover:scale-[1.01] ${
-                          errors.password ? 'border-red-400' : ''
-                        }`}
+                        transform transition-transform duration-200 hover:scale-[1.01]"
                       placeholder="Enter your password"
                     />
                     <button
@@ -136,9 +113,6 @@ export default function Login() {
                       )}
                     </button>
                   </div>
-                  {errors.password && (
-                    <p className="mt-2 text-sm text-red-400">{errors.password}</p>
-                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -152,9 +126,17 @@ export default function Login() {
                       Remember me
                     </label>
                   </div>
-                  <a href="#" className="text-sm text-blue-400 hover:text-blue-300">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      // Debug: Show current users
+                      const users = JSON.parse(localStorage.getItem('users') || '[]');
+                      console.log('Current users:', users);
+                    }}
+                    className="text-sm text-blue-400 hover:text-blue-300"
+                  >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
 
                 <button

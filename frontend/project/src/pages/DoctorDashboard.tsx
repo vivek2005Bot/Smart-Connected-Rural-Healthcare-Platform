@@ -3,13 +3,20 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 interface Appointment {
-  id: string;
-  patientName: string;
+  id: string | number;
+  patientName?: string;
+  name?: string;
   date: string;
   time: string;
   status: 'pending' | 'confirmed' | 'cancelled';
-  symptoms: string;
-  contactNumber: string;
+  symptoms?: string;
+  contactNumber?: string;
+  contact?: string;
+  email?: string;
+  address?: string;
+  doctor?: string;
+  specialty?: string;
+  age?: string;
 }
 
 interface DoctorInfo {
@@ -68,38 +75,26 @@ export default function DoctorDashboard() {
 
   const fetchAppointments = async () => {
     try {
-      // In real app, this would be an API call with the doctor's ID
-      const mockAppointments: Appointment[] = [
-        {
-          id: "APT001",
-          patientName: "John Doe",
-          date: "2024-03-20",
-          time: "10:00 AM",
-          status: "pending",
-          symptoms: "Fever and headache",
-          contactNumber: "+1234567890"
-        },
-        {
-          id: "APT002",
-          patientName: "Jane Smith",
-          date: "2024-03-20",
-          time: "11:30 AM",
-          status: "confirmed",
-          symptoms: "Regular checkup",
-          contactNumber: "+1234567891"
-        },
-        {
-          id: "APT003",
-          patientName: "Mike Johnson",
-          date: "2024-03-21",
-          time: "09:00 AM",
-          status: "cancelled",
-          symptoms: "Chronic back pain",
-          contactNumber: "+1234567892"
-        }
-      ];
+      // Get appointments from localStorage
+      const storedAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      
+      // Transform stored appointments to match our interface
+      const transformedAppointments: Appointment[] = storedAppointments.map((apt: any) => ({
+        id: apt.id,
+        patientName: apt.name || 'Unknown Patient',
+        date: new Date(apt.date).toLocaleDateString(),
+        time: apt.time || new Date(apt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: apt.status || 'pending',
+        symptoms: apt.symptoms || 'Not specified',
+        contactNumber: apt.contact || apt.contactNumber,
+        email: apt.email,
+        address: apt.address,
+        doctor: apt.doctor,
+        specialty: apt.specialty,
+        age: apt.age
+      }));
 
-      setAppointments(mockAppointments);
+      setAppointments(transformedAppointments);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -107,14 +102,39 @@ export default function DoctorDashboard() {
     }
   };
 
-  const handleStatusChange = async (appointmentId: string, newStatus: 'confirmed' | 'cancelled') => {
+  const handleStatusChange = (appointmentId: string, newStatus: 'confirmed' | 'cancelled') => {
     try {
-      // In real app, this would be an API call
-      setAppointments(appointments.map(apt => 
-        apt.id === appointmentId ? { ...apt, status: newStatus } : apt
-      ));
+      // Get current appointments from localStorage
+      const appointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+      
+      // Find and update the appointment status
+      const updatedAppointments = appointments.map((apt: any) => {
+        if (apt.id.toString() === appointmentId) {
+          return {
+            ...apt,
+            status: newStatus
+          };
+        }
+        return apt;
+      });
+
+      // Save back to localStorage
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+
+      // Update state to reflect changes
+      setAppointments(prevAppointments => 
+        prevAppointments.map(apt => 
+          apt.id.toString() === appointmentId 
+            ? { ...apt, status: newStatus }
+            : apt
+        )
+      );
+
+      // Show success message
+      alert(`Appointment ${newStatus} successfully`);
     } catch (error) {
       console.error('Error updating appointment status:', error);
+      alert('Failed to update appointment status');
     }
   };
 
@@ -348,65 +368,42 @@ export default function DoctorDashboard() {
                 filteredAppointments.map((appointment) => (
                   <motion.div
                     key={appointment.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="bg-white/10 backdrop-blur-lg rounded-xl p-6 hover:bg-white/15 transition-colors group"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-white"
                   >
                     <div className="flex justify-between items-start">
-                      <div className="flex items-start space-x-4">
-                        <div className={`rounded-full p-3 ${getStatusColor(appointment.status)} bg-opacity-20`}>
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-blue-300 transition-colors">
-                            {appointment.patientName}
-                          </h3>
-                          <div className="space-y-1 text-blue-200">
-                            <p className="flex items-center">
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              {appointment.date} at {appointment.time}
-                            </p>
-                            <p className="flex items-center">
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                              </svg>
-                              {appointment.symptoms}
-                            </p>
-                            <p className="flex items-center">
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              {appointment.contactNumber}
-                            </p>
-                          </div>
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">{appointment.patientName || appointment.name}</h3>
+                        <div className="space-y-1 text-blue-200">
+                          <p>Date: {appointment.date}</p>
+                          <p>Time: {appointment.time}</p>
+                          {appointment.symptoms && <p>Symptoms: {appointment.symptoms}</p>}
+                          {appointment.contactNumber && <p>Contact: {appointment.contactNumber}</p>}
+                          {appointment.email && <p>Email: {appointment.email}</p>}
+                          {appointment.age && <p>Age: {appointment.age}</p>}
+                          {appointment.address && <p>Address: {appointment.address}</p>}
+                          {appointment.specialty && <p>Specialty: {appointment.specialty}</p>}
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        <span className={`px-4 py-2 rounded-xl text-sm font-medium ${getStatusColor(appointment.status)}`}>
+                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(appointment.status)}`}>
                           {appointment.status}
                         </span>
                         {appointment.status === 'pending' && (
                           <div className="flex space-x-2">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleStatusChange(appointment.id, 'confirmed')}
-                              className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-sm font-medium shadow-lg"
+                            <button
+                              onClick={() => handleStatusChange(appointment.id.toString(), 'confirmed')}
+                              className="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg text-sm"
                             >
                               Confirm
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleStatusChange(appointment.id, 'cancelled')}
-                              className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-medium shadow-lg"
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(appointment.id.toString(), 'cancelled')}
+                              className="px-3 py-1 bg-red-500 hover:bg-red-600 rounded-lg text-sm"
                             >
                               Cancel
-                            </motion.button>
+                            </button>
                           </div>
                         )}
                       </div>

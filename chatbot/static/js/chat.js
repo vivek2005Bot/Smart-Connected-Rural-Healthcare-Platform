@@ -1,12 +1,14 @@
 let questionIndex = 0;
 const questions = [
     "What is your full name?",
+    "What is your gender? (Male/Female/Other)",
     "What is your age?",
     "What is your address?",
     "What is your email address?",
     "What is your contact number?"
 ];
 const answers = [];
+let appointmentBooked = false;
 
 function showNextQuestion() {
     if (questionIndex < questions.length) {
@@ -50,6 +52,18 @@ function showOptions() {
 function selectOption(option) {
     try {
         if (option === 'appointment') {
+            // Check if appointment is already booked
+            if (appointmentBooked) {
+                addMessage("You have already booked an appointment in this session.", 'bot');
+                return;
+            }
+
+            // Check if we have all required answers
+            if (answers.length < 6) {
+                addMessage("Please complete all the questions before booking an appointment.", 'bot');
+                return;
+            }
+
             addMessage("You selected: Book Appointment", 'user');
             // Generate random appointment number
             const appointmentNumber = Math.floor(100000 + Math.random() * 900000);
@@ -72,8 +86,17 @@ function selectOption(option) {
             })
             .then(data => {
                 if (data.status === 'success') {
+                    appointmentBooked = true;
                     addMessage(`Your appointment has been booked successfully! Your appointment number is: ${appointmentNumber}`, 'bot');
                     addMessage("Please save this number for future reference.", 'bot');
+                    
+                    // Disable the appointment button
+                    const appointmentBtn = document.querySelector('button[onclick="selectOption(\'appointment\')"]');
+                    if (appointmentBtn) {
+                        appointmentBtn.disabled = true;
+                        appointmentBtn.textContent = "Appointment Already Booked";
+                        appointmentBtn.style.opacity = "0.5";
+                    }
                 } else {
                     addMessage("Sorry, there was an error booking your appointment. Please try again.", 'bot');
                 }

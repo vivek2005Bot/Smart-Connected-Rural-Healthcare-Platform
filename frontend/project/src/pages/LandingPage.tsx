@@ -48,6 +48,17 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900">
+      {/* Admin Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate('/doctor-login')}
+        className="absolute top-4 right-4 flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300 z-50"
+      >
+        <Shield size={18} />
+        <span>Admin</span>
+      </motion.button>
+
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img
@@ -320,6 +331,18 @@ const LandingPage: React.FC = () => {
               </motion.div>
             ))}
           </motion.div>
+
+          <h2 className="text-3xl font-bold text-white mb-4">Know about disease</h2>
+          <p className="text-gray-300 mb-8">Our emergency services are available 24/7. Don't hesitate to reach out.</p>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-lg transition-colors"
+            onClick={() => navigate('/predict')}
+          >
+            Know about disease
+          </motion.button>
         </div>
       </div>
     </div>

@@ -1,14 +1,7 @@
 import PublicHeader from '../components/PublicHeader';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 
 export default function Emergency() {
-  const navigate = useNavigate();
-
-  const handleFooterClick = (path: string) => {
-    navigate(path);
-  };
-
   const emergencyServices = [
     {
       id: 1,
@@ -57,6 +50,13 @@ export default function Emergency() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
       <PublicHeader />
+      <div className="bg-red-600 text-white py-3 px-4">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-lg font-semibold">
+            If you are experiencing a life-threatening emergency, immediately dial 911 or your local emergency number.
+          </p>
+        </div>
+      </div>
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -98,64 +98,6 @@ export default function Emergency() {
           ))}
         </div>
       </main>
-
-      <motion.footer
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-lg border-t border-white/20 py-4"
-      >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-4 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/appointments')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm">Appointments</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/chat')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span className="text-sm">Chat</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/emergency')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span className="text-sm">Emergency</span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => handleFooterClick('/profile')}
-              className="flex flex-col items-center text-white hover:text-indigo-300 transition-colors"
-            >
-              <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-sm">Profile</span>
-            </motion.button>
-          </div>
-        </div>
-      </motion.footer>
     </div>
   );
 }

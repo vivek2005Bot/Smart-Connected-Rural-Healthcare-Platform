@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 interface ServiceCardProps {
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: typeof LucideIcon;
   path: string;
 }
 

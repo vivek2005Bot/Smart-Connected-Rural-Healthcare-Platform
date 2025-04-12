@@ -67,6 +67,8 @@ const HomePage: React.FC = () => {
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen hero-gradient flex flex-col relative overflow-hidden">
       {/* Background pattern with opacity */}
@@ -116,10 +118,10 @@ const HomePage: React.FC = () => {
                 Our emergency services are available 24/7. Don't hesitate to reach out.
               </p>
               <button 
-                onClick={() => window.location.href = '/emergency'}
+                onClick={() => navigate('/predict')}
                 className="glass-button px-8 py-3 rounded-xl text-white font-semibold"
               >
-                Contact Emergency Services
+                AI Recommendation
               </button>
             </div>
           </div>

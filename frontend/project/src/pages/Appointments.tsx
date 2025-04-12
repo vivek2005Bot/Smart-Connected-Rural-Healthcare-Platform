@@ -64,6 +64,7 @@ export default function Appointments() {
       setAppointments(storedAppointments);
     } catch (error) {
       console.error('Error loading appointments:', error);
+      setAppointments([]); // Set empty array on error
     }
   };
 
@@ -73,39 +74,47 @@ export default function Appointments() {
     } = bookingFormData;
 
     if (name && age && email && contact && address && date && time) {
-      const newAppointment: Appointment = {
-        id: Date.now(),
-        doctor: doctor || 'To be assigned',
-        specialty: specialty || 'General',
-        date,
-        time,
-        status: 'pending',
-        name,
-        age,
-        email,
-        contact,
-        address
-      };
+      try {
+        const newAppointment: Appointment = {
+          id: Date.now(),
+          doctor: doctor || 'To be assigned',
+          specialty: specialty || 'General',
+          date,
+          time,
+          status: 'pending',
+          name,
+          age,
+          email,
+          contact,
+          address
+        };
 
-      const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
-      const updatedAppointments = [...existingAppointments, newAppointment];
-      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+        const existingAppointments = JSON.parse(localStorage.getItem('appointments') || '[]');
+        const updatedAppointments = [...existingAppointments, newAppointment];
+        localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
 
-      setAppointments(prev => [...prev, newAppointment]);
-      setShowBookingForm(false);
-      setBookingFormData({
-        name: '',
-        age: '',
-        email: '',
-        contact: '',
-        address: '',
-        doctor: '',
-        specialty: '',
-        date: '',
-        time: ''
-      });
+        setAppointments(prev => [...prev, newAppointment]);
+        setShowBookingForm(false);
+        setBookingFormData({
+          name: '',
+          age: '',
+          email: '',
+          contact: '',
+          address: '',
+          doctor: '',
+          specialty: '',
+          date: '',
+          time: ''
+        });
 
-      loadAppointments();
+        alert('Appointment booked successfully!');
+        loadAppointments();
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+        alert('Failed to book appointment. Please try again.');
+      }
+    } else {
+      alert('Please fill in all required fields');
     }
   };
 
@@ -143,7 +152,7 @@ export default function Appointments() {
       alert(`Appointment ${newStatus} successfully`);
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      alert('Failed to update appointment status');
+      alert('Failed to update appointment status. Please try again.');
     }
   };
 
@@ -151,6 +160,11 @@ export default function Appointments() {
     if (filter === 'all') return true;
     return appointment.status === filter;
   });
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleBookAppointment();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
@@ -188,7 +202,7 @@ export default function Appointments() {
               className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full border border-white/20"
             >
               <h2 className="text-2xl font-bold text-white mb-6">Book Appointment</h2>
-              <form className="space-y-4">
+              <form onSubmit={handleFormSubmit} className="space-y-4">
                 <input
                   type="text"
                   name="name"
@@ -258,8 +272,7 @@ export default function Appointments() {
                 />
                 <div className="flex space-x-4">
                   <button
-                    type="button"
-                    onClick={handleBookAppointment}
+                    type="submit"
                     className="flex-1 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
                   >
                     Book Now
@@ -278,69 +291,52 @@ export default function Appointments() {
         )}
 
         {/* Appointments List */}
-        {appointments.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-white mb-6">Your Appointments</h2>
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-white mb-2">Your Appointments</h1>
-                <p className="text-purple-200">Manage your patient appointments and schedules</p>
-              </div>
-              <div className="flex gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-                >
-                  <span className="text-xl">+</span> Add Appointment
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-purple-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-purple-800 transition-colors"
-                >
-                  Sort
-                </motion.button>
-              </div>
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Your Appointments</h2>
+              <p className="text-purple-200">Manage your patient appointments and schedules</p>
             </div>
+          </div>
 
-            <div className="flex gap-4 mb-8">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-6 py-2 rounded-lg ${
-                  filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/20'
-                } transition-colors`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilter('pending')}
-                className={`px-6 py-2 rounded-lg ${
-                  filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
-                } transition-colors`}
-              >
-                Pending
-              </button>
-              <button
-                onClick={() => setFilter('confirmed')}
-                className={`px-6 py-2 rounded-lg ${
-                  filter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
-                } transition-colors`}
-              >
-                Confirmed
-              </button>
-              <button
-                onClick={() => setFilter('cancelled')}
-                className={`px-6 py-2 rounded-lg ${
-                  filter === 'cancelled' ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
-                } transition-colors`}
-              >
-                Cancelled
-              </button>
-            </div>
+          <div className="flex gap-4 mb-8">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-6 py-2 rounded-lg ${
+                filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+              } transition-colors`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter('pending')}
+              className={`px-6 py-2 rounded-lg ${
+                filter === 'pending' ? 'bg-yellow-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+              } transition-colors`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setFilter('confirmed')}
+              className={`px-6 py-2 rounded-lg ${
+                filter === 'confirmed' ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+              } transition-colors`}
+            >
+              Confirmed
+            </button>
+            <button
+              onClick={() => setFilter('cancelled')}
+              className={`px-6 py-2 rounded-lg ${
+                filter === 'cancelled' ? 'bg-red-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'
+              } transition-colors`}
+            >
+              Cancelled
+            </button>
+          </div>
 
-            <div className="space-y-6">
-              {filteredAppointments.map((appointment) => (
+          <div className="space-y-6">
+            {filteredAppointments.length > 0 ? (
+              filteredAppointments.map((appointment) => (
                 <motion.div
                   key={appointment.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -353,7 +349,8 @@ export default function Appointments() {
                       <div className="space-y-1 text-purple-200">
                         <p>Date: {new Date(appointment.date).toLocaleDateString()}</p>
                         {appointment.time && <p>Time: {appointment.time}</p>}
-                        {appointment.symptoms && <p>Symptoms: {appointment.symptoms}</p>}
+                        {appointment.doctor && <p>Doctor: {appointment.doctor}</p>}
+                        {appointment.specialty && <p>Specialty: {appointment.specialty}</p>}
                         {appointment.contact && <p>Contact: {appointment.contact}</p>}
                         {appointment.email && <p>Email: {appointment.email}</p>}
                         {appointment.age && <p>Age: {appointment.age}</p>}
@@ -387,10 +384,14 @@ export default function Appointments() {
                     </div>
                   </div>
                 </motion.div>
-              ))}
-            </div>
+              ))
+            ) : (
+              <div className="text-center text-white/70">
+                No appointments found. Book your first appointment now!
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

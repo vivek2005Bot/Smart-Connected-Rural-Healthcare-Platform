@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Activity, Zap, Globe, Heart, Brain, PhoneCall, Shield, Clock, Users, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const LandingPage: React.FC = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const { language, setLanguage, t } = useLanguage();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -27,20 +29,20 @@ const LandingPage: React.FC = () => {
 
   const features = [
     {
-      title: "Telemedicine",
-      description: "Access healthcare professionals remotely through video consultations",
+      titleKey: "telemedicine",
+      descriptionKey: "telemedicineDescription",
       icon: <PhoneCall className="w-12 h-12" />,
       color: "from-blue-500/30 to-purple-500/30"
     },
     {
-      title: "Emergency Support",
-      description: "Quick access to emergency services and immediate medical assistance",
+      titleKey: "emergencySupport",
+      descriptionKey: "emergencySupportDescription",
       icon: <Activity className="w-12 h-12" />,
       color: "from-red-500/30 to-orange-500/30"
     },
     {
-      title: "Mental Health",
-      description: "Professional mental health support and counseling services",
+      titleKey: "mentalHealth",
+      descriptionKey: "mentalHealthDescription",
       icon: <Brain className="w-12 h-12" />,
       color: "from-purple-500/30 to-pink-500/30"
     }
@@ -48,6 +50,17 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900">
+      {/* Language Toggle Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
+        className="absolute top-4 left-4 flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300 z-50"
+      >
+        <Globe size={18} />
+        <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
+      </motion.button>
+
       {/* Admin Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -56,7 +69,7 @@ const LandingPage: React.FC = () => {
         className="absolute top-4 right-4 flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-2 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-300 z-50"
       >
         <Shield size={18} />
-        <span>Admin</span>
+        <span>{t('admin')}</span>
       </motion.button>
 
       {/* Background Image with Overlay */}
@@ -147,7 +160,7 @@ const LandingPage: React.FC = () => {
                   textShadow: '0 0 20px rgba(59, 130, 246, 0.5)',
                 }}
               >
-                Smart Connected Rural Healthcare
+                {t('welcomeTitle')}
               </motion.h1>
             </motion.div>
             
@@ -160,7 +173,7 @@ const LandingPage: React.FC = () => {
                 textShadow: '0 0 10px rgba(59, 130, 246, 0.3)',
               }}
             >
-              Bringing quality healthcare services to rural communities through innovative technology and telemedicine solutions.
+              {t('welcomeDescription')}
             </motion.p>
 
             <motion.div
@@ -205,20 +218,8 @@ const LandingPage: React.FC = () => {
                     ease: "easeInOut"
                   }}
                 >
-                  Get Started
-                  <motion.div
-                    animate={{
-                      x: [0, 5, 0],
-                      rotate: [0, 360],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <ArrowRight className="w-6 h-6" />
-                  </motion.div>
+                  {t('getStarted')}
+                  <ArrowRight className="w-6 h-6" />
                 </motion.span>
               </motion.div>
             </motion.div>
@@ -247,17 +248,14 @@ const LandingPage: React.FC = () => {
                 }}
               >
                 <motion.div
-                  className={`bg-gradient-to-br ${feature.color} p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 transform-gpu`}
+                  className={`bg-gradient-to-br ${feature.color} p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4`}
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.5 }}
-                  style={{
-                    transformStyle: 'preserve-3d',
-                  }}
                 >
                   {feature.icon}
                 </motion.div>
-                <h3 className="text-2xl font-semibold text-white mb-3">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <h3 className="text-2xl font-semibold text-white mb-3">{t(feature.titleKey)}</h3>
+                <p className="text-gray-400">{t(feature.descriptionKey)}</p>
               </motion.div>
             ))}
           </motion.div>

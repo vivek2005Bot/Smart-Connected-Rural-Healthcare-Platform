@@ -20,80 +20,71 @@ import LandingPage from './pages/LandingPage';
 import ChatBot from './components/ChatBot';
 import Admin from './pages/Admin';
 import PredictPage from './pages/PredictPage';
+import { LanguageProvider } from './context/LanguageContext';
 
-function App() {
-  const navigate = useNavigate();
-  
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    navigate('/');
-  };
-
+const App = () => {
   return (
     <AuthProvider>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/doctor-login" element={<DoctorLogin />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/predict" element={<PredictPage onBack={() => navigate('/home')} onLogout={handleLogout} />} />
-        <Route path="/emergency" element={<Emergency />} />
-        <Route path="/help" element={<HelpSupport />} />
+      <LanguageProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/doctor-login" element={<DoctorLogin />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/predict" element={<PredictPage onBack={() => window.history.back()} onLogout={() => {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            window.location.href = '/';
+          }} />} />
+          <Route path="/emergency" element={<Emergency />} />
+          <Route path="/help" element={<HelpSupport />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/doctor-dashboard"
-          element={
-            <DoctorProtectedRoute>
-              <DoctorDashboard />
-            </DoctorProtectedRoute>
-          }
-        />
+          {/* Protected routes */}
+          <Route
+            path="/doctor-dashboard"
+            element={
+              <DoctorProtectedRoute>
+                <DoctorDashboard />
+              </DoctorProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/appointments"
-          element={
-            <ProtectedRoute>
-              <Appointments />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/appointments"
+            element={
+              <ProtectedRoute>
+                <Appointments />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/chat"
-          element={
-            <ProtectedRoute>
-              <ChatSupport />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatSupport />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/mental-health"
-          element={
-            <ProtectedRoute>
-              <MentalHealth />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/mental-health"
+            element={
+              <ProtectedRoute>
+                <MentalHealth />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <ChatBot />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <ChatBot />
+      </LanguageProvider>
     </AuthProvider>
   );
-}
+};
 
-function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
-  );
-}
-
-export default AppWrapper;
+export default App;

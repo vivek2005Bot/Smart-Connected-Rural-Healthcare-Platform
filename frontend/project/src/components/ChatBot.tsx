@@ -347,10 +347,15 @@ const ChatBot = () => {
       {/* Chat Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-[9999]"
+        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-[999]"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        style={{ position: 'fixed', bottom: '24px', right: '24px' }}
+        style={{ 
+          position: 'fixed', 
+          bottom: '24px', 
+          right: '24px',
+          zIndex: 999
+        }}
       >
         <Bot className="w-6 h-6" />
       </motion.button>
@@ -362,8 +367,13 @@ const ChatBot = () => {
             initial={{ opacity: 0, y: 100 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
-            className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden z-[9999] border border-gray-200"
-            style={{ position: 'fixed', bottom: '96px', right: '24px' }}
+            className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl overflow-hidden z-[998] border border-gray-200"
+            style={{ 
+              position: 'fixed', 
+              bottom: '96px', 
+              right: '24px',
+              zIndex: 998
+            }}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 flex justify-between items-center">
